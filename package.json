@@ -1,0 +1,16 @@
+{
+  "name": "nx10",
+  "version": "0.0.1",
+  "description": "Light weight Web Component Wrapper for creating custom component",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "webcomponent", "templating", "shadowDOM",
+    "hooks", "Property", "Attribute", "light weight",
+    "custom templating", "library"
+  ],
+  "author": "nirajKumar<nirajnsp5@gmail.com>",
+  "homepage": ""
+}
