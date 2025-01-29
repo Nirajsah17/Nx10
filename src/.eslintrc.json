@@ -1,0 +1,18 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "plugin:eslint-plugin/recommended",
+    "plugin:import/recommended"
+  ],
+  // add your environment below the extends key, like this:
+  "env": {
+    "es6": true,
+    "browser": true,
+    "mocha": true,
+    "node": true
+  },
+  "plugins": ["import", "eslint-plugin"],
+  "parserOptions": {
+    "ecmaVersion": 8
+  }
+}

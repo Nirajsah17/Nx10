@@ -6,18 +6,19 @@ import { applyTemplate } from './templateEngine.js';
  * 
  * @param {Object} options - configuration for the component
  * @param {string} options.tagName - e.g. 'my-button'
- * @param {Object} options.props - define props to reflect as attributes, types, defaults
- * @param {Object} options.initialState - internal state
- * @param {string} options.template - HTML template with placeholders for props/state
- * @param {string} options.style - CSS for Shadow DOM or light DOM
- * @param {Function} options.beforeRender - lifecycle hook
- * @param {Function} options.afterRender - lifecycle hook
- * @param {Function} options.onConnected - lifecycle hook
- * @param {Function} options.onDisconnected - lifecycle hook
- * @param {boolean} options.useShadow - if true, attach Shadow DOM
- * @param {Object} options.watch - watchers { keyName: (newVal, oldVal) => {} }
- * @param {Array} options.plugins - optional array of plugins, each is a function
- * @param {Object} options.methods - object with functions for @event bindings
+ * @param {Object} [options.props={}] - define props to reflect as attributes, types, defaults
+ * @param {Object} [options.initialState={}] - internal state
+ * @param {string} [options.template=''] - HTML template with placeholders for props/state
+ * @param {string} [options.style=''] - CSS for Shadow DOM or light DOM
+ * @param {Function} [options.beforeRender]
+ * @param {Function} [options.afterRender]
+ * @param {Function} [options.onConnected]
+ * @param {Function} [options.onDisconnected]
+ * @param {boolean} [options.useShadow=true] - if true, attach Shadow DOM
+ * @param {Object} [options.watch={}] - watchers { keyName: (newVal, oldVal) => {} }
+ * @param {Array} [options.plugins=[]] - optional array of plugins, each is a function
+ * @param {Object} [options.methods={}] - object with functions for @event bindings
+ * @param {string} [options.bindingMode='onInput'] - 'onInput' or 'onBlur'
  */
 export function createComponent({
   tagName,
@@ -32,7 +33,8 @@ export function createComponent({
   useShadow = true,
   watch = {},
   plugins = [],
-  methods = {},             // <-- NEW: for @click, @input, etc.
+  methods = {},               // for declarative event methods
+  bindingMode = 'onInput',    // NEW: controls how we handle data-model updates
 }) {
   // Generate observedAttributes from props that want reflection
   const observedAttributes = Object.entries(props)
@@ -75,7 +77,10 @@ export function createComponent({
       // 5) Methods for @event directives
       this.methods = methods;
 
-      // 6) Setup last known data
+      // 6) Binding mode
+      this.bindingMode = bindingMode;
+
+      // 7) Setup last known data
       this._updatePrevData();
     }
 
@@ -92,7 +97,7 @@ export function createComponent({
     }
 
     attributeChangedCallback(name, oldVal, newVal) {
-      // Update or re-render if attributes that reflect changed
+      // Update internal references or re-render
       this._render();
     }
 
@@ -108,21 +113,33 @@ export function createComponent({
 
     // MAIN RENDER
     _render() {
-      // 1) Save the currently focused element and cursor position
-      const activeEl = document.activeElement;
-      let selectionStart, selectionEnd, wasInput = false;
+      beforeRender?.(this);
+      this._plugins.forEach((p) => p.beforeRender?.(this));
 
-      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
-        wasInput = true;
-        selectionStart = activeEl.selectionStart;
-        selectionEnd = activeEl.selectionEnd;
+      // Gather data from attributes (props) + internal state
+      const dataForTemplate = { ...this._collectProps(), ...this._state };
+
+      // Watchers
+      for (const [key, watcherFn] of Object.entries(watch)) {
+        const oldVal = this._prevData[key];
+        const newVal = dataForTemplate[key];
+        if (newVal !== oldVal) {
+          watcherFn.call(this, newVal, oldVal);
+        }
       }
 
-      // 2) Proceed with your normal re-render logic
-      const dataForTemplate = { ...this._collectProps(), ...this._state };
+      // Allow plugins to transform the template
+      let transformedTemplate = template;
+      this._plugins.forEach((p) => {
+        if (typeof p.transformTemplate === 'function') {
+          transformedTemplate = p.transformTemplate(transformedTemplate, dataForTemplate, this);
+        }
+      });
+
+      // Apply template
       const finalHTML = `
         <style>${style}</style>
-        ${applyTemplate(template, dataForTemplate)}
+        ${applyTemplate(transformedTemplate, dataForTemplate)}
       `;
       if (this.shadowRoot) {
         this.shadowRoot.innerHTML = finalHTML;
@@ -130,64 +147,68 @@ export function createComponent({
         this.innerHTML = finalHTML;
       }
 
-      // 3) Re-bind your two-way data, events, watchers, etc.
+      // Two-way data binding
       this._bindTwoWayData();
+
+      // Declarative events
       this._bindTemplateEvents();
 
-      // 4) Restore focus/cursor if the same kind of element still exists
-      if (wasInput) {
-        // Find the new input that replaced the old one
-        // e.g., an input with data-model="username" if that's what user typed in
-        const root = this.shadowRoot ?? this;
-        const newInput = root.querySelector(`[data-model="username"]`);
-        if (newInput) {
-          newInput.focus();
-          // Restore the cursor selection
-          newInput.setSelectionRange(selectionStart, selectionEnd);
-        }
-      }
+      afterRender?.(this);
+      this._plugins.forEach((p) => p.afterRender?.(this));
+
+      // Update previous data for watchers
+      this._updatePrevData();
     }
 
     /**
-     * Binds <input data-model="stateKey"> for two-way data
+     * Binds <input data-model="someKey"> for two-way data
      */
     _bindTwoWayData() {
       const root = this.shadowRoot ?? this;
       const bindableElems = root.querySelectorAll('[data-model]');
+
       bindableElems.forEach(elem => {
         const key = elem.getAttribute('data-model');
+
+        // Initialize input value from state
         if (this._state[key] !== undefined) {
           elem.value = this._state[key];
         }
-        // Instead of 'input' event, do 'blur'
-        elem.addEventListener('blur', (e) => {
-          const val = e.target.value;
-          this.setState({ [key]: val });
-          // Now re-render once the user leaves the input
-        });
+
+        if (this.bindingMode === 'onBlur') {
+          // 1) Update internal state as user types (NO re-render)
+          elem.addEventListener('input', (e) => {
+            this._state[key] = e.target.value;
+          });
+          // 2) Actually re-render on blur
+          elem.addEventListener('blur', (e) => {
+            this.setState({ [key]: e.target.value });
+          });
+        } else {
+          // Default: 'onInput' => re-render on every keystroke
+          elem.addEventListener('input', (e) => {
+            const val = e.target.value;
+            this.setState({ [key]: val });
+          });
+        }
       });
     }
 
-
     /**
-     * Finds attributes like @click="someMethod" or @input="someMethod"
-     * and attaches event listeners that call methods[someMethod].
+     * Finds @event="methodName" attributes in the DOM
+     * and attaches event listeners calling methods[methodName].
      */
     _bindTemplateEvents() {
       const root = this.shadowRoot ?? this;
       const allElements = root.querySelectorAll('*');
-
       allElements.forEach(el => {
-        const attrNames = el.getAttributeNames();
-        attrNames.forEach(attrName => {
+        el.getAttributeNames().forEach(attrName => {
           if (attrName.startsWith('@')) {
-            const eventType = attrName.slice(1); // e.g. "click"
-            const methodName = el.getAttribute(attrName); // e.g. "incrementCount"
-
+            const eventType = attrName.slice(1);
+            const methodName = el.getAttribute(attrName);
             const handlerFn = this.methods[methodName];
             if (typeof handlerFn === 'function') {
-              el.addEventListener(eventType, evt => {
-                // Call the method in the context of the component
+              el.addEventListener(eventType, (evt) => {
                 handlerFn.call(this, evt, this);
               });
             } else {
@@ -206,21 +227,17 @@ export function createComponent({
     _collectProps() {
       const result = {};
       for (const [propName, def] of Object.entries(props)) {
-        // read from attribute
         const attrVal = this.getAttribute(propName);
         if (attrVal === null) {
-          // boolean might be false if attribute not set
           if (def.type === 'boolean') {
             result[propName] = false;
           } else {
             result[propName] = undefined;
           }
         } else {
-          // type conversion
           if (def.type === 'number') {
             result[propName] = Number(attrVal);
           } else if (def.type === 'boolean') {
-            // boolean attribute => present means true, unless explicitly "false"
             result[propName] = (attrVal !== 'false');
           } else {
             result[propName] = attrVal;
@@ -246,7 +263,6 @@ export function createComponent({
       },
       set(newVal) {
         if (def.reflect) {
-          // reflect to attribute
           if (def.type === 'boolean') {
             if (newVal) this.setAttribute(propName, '');
             else this.removeAttribute(propName);
