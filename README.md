@@ -51,33 +51,7 @@ You can install Nx10 via npm or include it directly in your project.
 
 ```bash
 npm install nx10
-# Nx10
-
-**Nx10** is a lightweight, extensible JavaScript library for building modern, modular Web Components. Inspired by frameworks like Angular, Nx10 offers a flexible plugin architecture that empowers developers to enhance component functionality with ease. Whether you're creating simple UI elements or complex Single Page Applications (SPAs), Nx10 provides the tools you need to build robust and maintainable web components.
-
----
-
-## Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-- [Getting Started](#getting-started)
-- [Core Concepts](#core-concepts)
-  - [Creating Components](#creating-components)
-  - [Plugin System](#plugin-system)
-  - [Pipes](#pipes)
-  - [Routing](#routing)
-- [Usage Examples](#usage-examples)
-  - [Basic Component](#basic-component)
-  - [Using Pipes](#using-pipes)
-  - [Client-Side Routing](#client-side-routing)
-- [API Reference](#api-reference)
-  - [`createComponent`](#createcomponent)
-  - [Available Plugins](#available-plugins)
-- [Contributing](#contributing)
-- [License](#license)
-
----
+```
 
 ## Features
 
@@ -88,15 +62,3 @@ npm install nx10
 - **Angular-like Pipes**: Transform data within templates using pipe functions.
 - **Client-Side Routing**: Manage navigation within Single Page Applications without full page reloads.
 - **Lightweight**: Minimal footprint ensures fast performance and easy integration.
-
----
-
-## Installation
-
-You can install Nx10 via npm or include it directly in your project.
-
-### Using npm
-
-```bash
-npm install nx10
-```
