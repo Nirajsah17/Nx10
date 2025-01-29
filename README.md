@@ -5,10 +5,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/your-repo/nx10"><img src="https://img.shields.io/github/stars/your-repo/nx10.svg?style=social&label=Star" alt="GitHub stars"></a>
-  <a href="https://github.com/your-repo/nx10/issues"><img src="https://img.shields.io/github/issues/your-repo/nx10.svg" alt="GitHub issues"></a>
-  <a href="https://github.com/your-repo/nx10/network"><img src="https://img.shields.io/github/forks/your-repo/nx10.svg" alt="GitHub forks"></a>
-  <a href="https://github.com/your-repo/nx10/releases"><img src="https://img.shields.io/github/release/your-repo/nx10.svg" alt="GitHub release"></a>
+  <a href="https://github.com/Nirajsah17/Nx10"><img src="https://img.shields.io/github/stars/Nirajsah17/Nx10.svg?style=social&label=Star" alt="GitHub stars"></a>
+  <a href="https://github.com/Nirajsah17/Nx10/issues"><img src="https://img.shields.io/github/issues/Nirajsah17/Nx10.svg" alt="GitHub issues"></a>
+  <a href="https://github.com/Nirajsah17/Nx10/network"><img src="https://img.shields.io/github/forks/Nirajsah17/Nx10.svg" alt="GitHub forks"></a>
+  <a href="https://github.com/Nirajsah17/Nx10/releases"><img src="https://img.shields.io/github/release/Nirajsah17/Nx10.svg" alt="GitHub release"></a>
 </p>
 
 **Nx10** is a lightweight, extensible JavaScript library for building modern, modular Web Components. Inspired by frameworks like Angular, Nx10 offers a flexible plugin architecture that empowers developers to enhance component functionality with ease. Whether you're creating simple UI elements or complex Single Page Applications (SPAs), Nx10 provides the tools you need to build robust and maintainable web components.
