@@ -1,5 +1,5 @@
 // src/createComponent.js
-import { applyTemplate } from './templateEngine.js';
+import { applyTemplate } from '../templates/template.js';
 
 /**
  * createComponent - Define a custom element with minimal boilerplate

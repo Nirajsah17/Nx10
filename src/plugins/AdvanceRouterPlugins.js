@@ -15,8 +15,10 @@
 export function AdvancedRouterPlugin(routeDefs = [], useHash = false) {
   // 1. A helper to parse the route definitions and extract placeholders
   // e.g. "/users/:id" => { regex: /^\/users\/([^\/]+)$/, keys: ['id'] }
+  console.log(routeDefs)
   const compiledRoutes = routeDefs.map((rd) => {
     const { pattern, view } = rd;
+    console.log({pattern, view})
     if (pattern === '*') {
       return { regex: /.*/, keys: [], pattern, view };
     }

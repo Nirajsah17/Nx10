@@ -1,6 +1,6 @@
-import { createComponent } from '../src/index.js';
+import { NxComponent } from "../../src/index.js";
 
-createComponent({
+NxComponent({
   tagName: 'todo-list',
   initialState: {
     items: [],
@@ -35,10 +35,13 @@ createComponent({
       }
     },
   },
+
+  watcher: {
+    items(newVal, oldVal){
+      console.log('Items changed:', oldVal, '=>', newVal);
+    }
+  },
   // The magic: 'onBlur' means we do not re-render on every keystroke,
   // but the state is still kept up to date for button clicks.
   bindingMode: 'onBlur',
 });
-
-// Then in your HTML or script:
-document.body.innerHTML = `<todo-list></todo-list>`;
