@@ -1,5 +1,10 @@
 # Nx10
+
+
+
 ![Alt Nx10 Logo](/images/logo.svg)
+
+
 **Nx10** is a lightweight, extensible JavaScript library for building modern, modular Web Components. Inspired by frameworks like Angular, Nx10 offers a flexible plugin architecture that empowers developers to enhance component functionality with ease. Whether you're creating simple UI elements or complex Single Page Applications (SPAs), Nx10 provides the tools you need to build robust and maintainable web components.
 
 ---
